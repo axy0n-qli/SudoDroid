@@ -1,6 +1,6 @@
 id=sudodroid
 name=SudoDroid
-version=v0.1
+version=v1.0
 versionCode=1
 author=Axy0n
 description=The sudo binary in /system/bin
