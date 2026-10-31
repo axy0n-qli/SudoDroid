@@ -1,0 +1,124 @@
+#!/system/bin/sh
+
+SUDODROID_VERSION="1.0"
+
+ROOT_HOME="/data/local/tmp/sudodroid"
+ANDROID_SYSPATHS="/system/bin:/system/xbin:/product/bin:/vendor/bin"
+EXTRA_SYSPATHS="/data/adb/ksu/bin:/data/adb/magisk:/sbin"
+
+show_usage() {
+	cat <<'USAGE'
+sudo - run commands as root or another user
+  usage: sudo command
+  usage: sudo [-E] [-u USER] command
+  usage: sudo su
+
+    Options:
+      -E          Preserve environment variables from the current shell.
+      -u USER     Switch to USER instead of root.
+      --version   Show version.
+USAGE
+}
+
+quote() {
+	printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+find_su() {
+	for candidate in /system/xbin/su /system/bin/su /sbin/su /sbin/bin/su /debug_ramdisk/su /data/adb/ksu/bin/su; do
+		if [ -x "$candidate" ]; then
+			echo "$candidate"
+			return 0
+		fi
+	done
+	command -v su 2>/dev/null
+}
+
+SWITCH_USER=""
+PRESERVE_ENV=""
+
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+	-u | --user)
+		[ -n "$2" ] || { show_usage; exit 1; }
+		SWITCH_USER="$2"
+		shift 2
+		;;
+	-E | --preserve-environment)
+		PRESERVE_ENV=1
+		shift
+		;;
+	--version)
+		echo "sudodroid - $SUDODROID_VERSION"
+		exit 0
+		;;
+	-h | --help)
+		show_usage
+		exit 0
+		;;
+	--)
+		shift
+		break
+		;;
+	*)
+		break
+		;;
+	esac
+done
+
+if [ "$#" -eq 0 ]; then
+	show_usage
+	exit 1
+fi
+
+SU_BINARY="$(find_su)"
+
+if [ -z "$SU_BINARY" ]; then
+	echo "No superuser binary detected."
+	echo "Are you rooted?"
+	exit 1
+fi
+
+if [ "$1" = "su" ] && [ "$#" -eq 1 ]; then
+	if [ -n "$SWITCH_USER" ]; then
+		exec "$SU_BINARY" "$SWITCH_USER"
+	fi
+	exec "$SU_BINARY"
+fi
+
+CMD_ARGS=""
+for arg in "$@"; do
+	CMD_ARGS="$CMD_ARGS $(quote "$arg")"
+done
+
+if [ -n "$PRESERVE_ENV" ]; then
+	if [ -n "$SWITCH_USER" ]; then
+		exec "$SU_BINARY" "$SWITCH_USER" --preserve-environment -c "PATH=$PATH:$ANDROID_SYSPATHS:$EXTRA_SYSPATHS $CMD_ARGS"
+	fi
+	exec "$SU_BINARY" --preserve-environment -c "PATH=$PATH:$ANDROID_SYSPATHS:$EXTRA_SYSPATHS $CMD_ARGS"
+fi
+
+SUDO_UID_VALUE="$(id -u)"
+SUDO_GID_VALUE="$(id -g)"
+SUDO_USER_VALUE="$(id -un 2>/dev/null)"
+[ -n "$SUDO_USER_VALUE" ] || SUDO_USER_VALUE="$SUDO_UID_VALUE"
+
+if [ -n "$SWITCH_USER" ]; then
+	NEW_HOME="/"
+	NEW_PATH="$ANDROID_SYSPATHS"
+else
+	NEW_HOME="$ROOT_HOME"
+	NEW_PATH="$PATH:$ANDROID_SYSPATHS:$EXTRA_SYSPATHS"
+fi
+
+ENV_BUILT="HOME=$NEW_HOME PATH=$NEW_PATH TERM=${TERM:-xterm-256color}"
+ENV_BUILT="$ENV_BUILT TMPDIR=$ROOT_HOME/.tmp ANDROID_ROOT=${ANDROID_ROOT:-/system} ANDROID_DATA=${ANDROID_DATA:-/data}"
+ENV_BUILT="$ENV_BUILT SUDO_USER=$SUDO_USER_VALUE SUDO_UID=$SUDO_UID_VALUE SUDO_GID=$SUDO_GID_VALUE"
+
+PREPARE="mkdir -p $ROOT_HOME/.tmp;"
+
+if [ -n "$SWITCH_USER" ]; then
+	exec "$SU_BINARY" "$SWITCH_USER" -c "env -i $ENV_BUILT $CMD_ARGS"
+fi
+
+exec "$SU_BINARY" -c "$PREPARE exec env -i $ENV_BUILT $CMD_ARGS"

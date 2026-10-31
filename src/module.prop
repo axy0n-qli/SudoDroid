@@ -1,0 +1,7 @@
+id=sudodroid
+name=SudoDroid
+version=v1.0
+versionCode=1
+author=Axy0n
+description=The sudo binary in /system/bin
+updateJson=https://raw.githubusercontent.com/axy0n-qli/SudoDroid/main/update.json
