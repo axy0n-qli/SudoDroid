@@ -1,1 +1,1 @@
-sudo -e
+sudo -h
