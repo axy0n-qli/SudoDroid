@@ -12,3 +12,5 @@ cd /tmp
 git clone https://github.com/axy0n-qli/SudoDroid.git
 cd SudoDroid && make
 ```
+### Why?
+I created this module for myself so I could easily use sudo in the actual Android terminal. That way I can keep my variables 
