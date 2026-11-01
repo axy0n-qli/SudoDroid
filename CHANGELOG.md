@@ -1,3 +1,2 @@
 ## What's Changed
-* Add action.sh for test sudo @axy0n-qli 
-
+* Update description in module.prop @axy0n-qli 
