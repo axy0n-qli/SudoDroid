@@ -6,3 +6,9 @@
 2. Open your root manager (make sure you are a metamodule installed, otherwise install it's)
 3. Flash the module and reboot
 4. Now run in terminal or adb shell "sudo" (not in termux), you can also run action on your root manager for test
+### Building from source 🤓
+```bash
+cd /tmp
+git clone https://github.com/axy0n-qli/SudoDroid.git
+cd SudoDroid && make
+```
