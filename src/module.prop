@@ -3,5 +3,5 @@ name=SudoDroid
 version=v1.1
 versionCode=11
 author=Axy0n
-description=The sudo binary in /system/bin
+description=The sudo binary in /system/bin for android
 updateJson=https://raw.githubusercontent.com/axy0n-qli/SudoDroid/main/update.json

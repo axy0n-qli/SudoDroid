@@ -1,5 +1,5 @@
 # SudoDroid
-#### The sudo binary in /system/bin
+#### The sudo binary in /system/bin for android
 
 ## Install 🚀
 1. Download the [zip](https://github.com/axy0n-qli/SudoDroid/releases/download/1.0/sudodroid.zip)
